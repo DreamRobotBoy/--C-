@@ -1,7 +1,17 @@
 #include "MC_Data_Manage.h"
 #define DIMENSION 3               //根据矩阵维度修改这个值
-void main(void)
+void MatrixTest();		//链表矩阵测试
+void MatrixTest();		//二维数组矩阵测试
+int main()
 {
+	MatrixTest();		//链表矩阵测试
+	Matrix2Test();		//二维数组矩阵测试
+}
+
+void MatrixTest()
+{
+	
+	
 	uint8_t status = 6;
 	uint8_t Err;
 	FP64 Value[DIMENSION] = { 0 };
@@ -229,4 +239,117 @@ void main(void)
 		}
 		system("pause");
 	}
+}
+
+void MatrixTest()		//二维数组矩阵测试
+{
+	uint8_t status = 7;
+	uint8_t Err;
+	FP64 Coeff[DIMENSION+1] = { 1, 1, 1, 1, 2 };
+	FP64 Value[DIMENSION] = { 1, 2, 3, 4 };
+	FP64 Root[DIMENSION] = { 0 };
+	uint16_t i = 0;
+	if (status == 7)
+	{
+		FP64 **ppMatrix = MC2_MatrixCreate(DIMENSION);
+		MC2_MatrixPrint(ppMatrix, DIMENSION);
+		uint16_t select = 2;
+		if (select == 1)
+		{
+			//添加数据
+			i = 0;
+			Coeff[0] = 0;
+			Coeff[1] = 4;
+			Coeff[2] = 2;
+			Coeff[3] = 3;
+			Coeff[4] = 10;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 0;
+			Coeff[1] = 0;
+			Coeff[2] = 2;
+			Coeff[3] = -4;
+			Coeff[4] = 12;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 1;
+			Coeff[1] = 2;
+			Coeff[2] = 0;
+			Coeff[3] = 0;
+			Coeff[4] = 7;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 2;
+			Coeff[1] = 3;
+			Coeff[2] = -1;
+			Coeff[3] = 0;
+			Coeff[4] = 9;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			MC2_MatrixPrint(ppMatrix, DIMENSION);
+
+		}
+		else if (select == 2)
+		{
+			//添加数据
+			i = 0;
+			Coeff[0] = 0;
+			Coeff[1] = 3;
+			Coeff[2] = -4;
+			Coeff[3] = 2;
+			Coeff[4] = 19;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 0;
+			Coeff[1] = 0;
+			Coeff[2] = 2;
+			Coeff[3] = 6;
+			Coeff[4] = 2;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 1;
+			Coeff[1] = 1;
+			Coeff[2] = 0;
+			Coeff[3] = 0;
+			Coeff[4] = 5;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			//MC2_MatrixPrint(ppMatrix, DIMENSION);
+			//添加数据
+			Coeff[0] = 2;
+			Coeff[1] = -1;
+			Coeff[2] = 5;
+			Coeff[3] = 0;
+			Coeff[4] = -9;
+			Err = MC2_MatrixAddRow(ppMatrix, i++, Coeff, DIMENSION + 1, DIMENSION);
+			MC2_MatrixPrint(ppMatrix, DIMENSION);
+
+		}
+		else if (select == 3)
+		{
+			
+		}
+		//消元第一步
+		Err = MC2_MatrixElimination(ppMatrix, DIMENSION);
+		MC2_MatrixPrint(ppMatrix, DIMENSION);
+
+		//回代求解
+		Err = MC2_MatrixInverseCal(ppMatrix, Root, DIMENSION);
+		for (int16_t i = 0; i < DIMENSION; i++)
+		{
+			printf("%f ", Root[i]);
+		}
+
+		//Err = MC2_MatrixAddRvalue(ppMatrix, Value, DIMENSION);
+		//MC2_MatrixPrint(ppMatrix, DIMENSION);
+
+		MC2_MatrixRelease(ppMatrix, DIMENSION);
+
+
+	}
+
+	system("pause");
 }
