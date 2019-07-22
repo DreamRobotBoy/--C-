@@ -1,4 +1,5 @@
 # Solution_of_linear_equations
 求解N个未知数的线性方程组的解集
-线性矩阵以动态链表的数据类型表示
-所有函数都在MC_Data_Manage.h保存
+线性方程组以矩阵的形式表示
+本项目中有两种矩阵表示方式，一种以动态链表的形式表示，一种以二维动态数组的形式表示
+所有函数都在保存MC_Data_Manage.h和MC_Data_Manage.c文件中。
