@@ -379,3 +379,224 @@ uint8_t MC_MatrixInverseCal(MC_Matrix_t *pMatrix, FP64 pValue[], FP64 pRoot[], u
 	free(pAddr);
 	return 0;
 }
+
+
+/********************************************************************************************
+/********************************************************************************************
+/********************************************************************************************
+/**********************  以二维数组表示矩阵,求解方程的解 ************************************
+/********************************************************************************************
+/********************************************************************************************
+********************************************************************************************/
+
+/********************************************************************************************
+函数功能：创建系数矩阵
+@Param 无:
+返回:指向FP64类型的二维指针
+********************************************************************************************/
+FP64 **MC2_MatrixCreate(uint16_t uiDimension)
+{
+	//为系数矩阵分配uiDimension*(uiDimension+1)维的内存空间
+	FP64 **Array = (FP64**)calloc(uiDimension,sizeof(FP64*));
+	//FP64 **Array = (FP64**)malloc(uiDimension*sizeof(FP64*));
+	for (int8_t i = 0; i < uiDimension; i++)
+	{
+		 Array[i] = (FP64*)calloc(uiDimension + 1, sizeof(FP64));
+	}
+
+	return Array;
+}
+
+/********************************************************************************************
+函数功能：释放系数矩阵
+@Param ppMatrix:指向系数矩阵的指针
+@Param uiDimension:
+无返回值:
+********************************************************************************************/
+void MC2_MatrixRelease(FP64 **ppMatrix, uint16_t uiDimension)
+{
+	//释放内存
+	for (int8_t i = 0; i < uiDimension; i++)
+	{
+		free(ppMatrix[i]);
+	}
+	free(ppMatrix);
+
+}
+
+/********************************************************************************************
+函数功能：打印系数矩阵
+@Param ppMatrix:指向系数矩阵的指针
+无返回值
+********************************************************************************************/
+void MC2_MatrixPrint(FP64 **ppMatrix, uint16_t uiDimension)
+{
+
+	for (int8_t i = 0; i <uiDimension; i++)
+	{
+		for (int8_t j = 0; j < uiDimension+1; j++)
+		{
+			printf("%f ", ppMatrix[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n******************************************************\n\n");
+}
+
+/********************************************************************************************
+函数功能：添加整行系数到矩阵的第i行中
+@Param ppMatrix:指向系数矩阵的指针
+@Param pCoeff:指向系数矩阵的指针
+@Param i:指向系数矩阵的指针
+@Param uiDimension:矩阵维度
+返回值 0成功  1失败
+********************************************************************************************/
+uint8_t MC2_MatrixAddRow(FP64 **ppMatrix, uint16_t i, FP64 pCoeff[], uint16_t length, uint16_t uiDimension)
+{
+	if (ppMatrix == NULL || uiDimension == 0 || pCoeff == NULL)
+	{
+		return 1;
+	}
+	//超过范围返回错误
+	if (length >uiDimension+1)
+	{
+		return 1;
+	}
+	for (uint16_t j = 0; j < length; j++)
+	{
+		ppMatrix[i][j] = pCoeff[j];
+	}
+	return 0;
+}
+
+
+/********************************************************************************************
+函数功能：添加整行系数到矩阵的第i行中
+@Param ppMatrix:指向系数矩阵的指针
+@Param pValue:指向系数矩阵等于右值的指针
+@Param uiDimension:矩阵维度
+返回值 0成功  1失败
+********************************************************************************************/
+uint8_t MC2_MatrixAddRvalue(FP64 **ppMatrix, FP64 pValue[], uint16_t uiDimension)
+{
+	if (ppMatrix == NULL || uiDimension == 0||pValue == NULL)
+	{
+		return 1;
+	}
+	for (uint16_t j = 0; j < uiDimension; j++)
+	{
+		ppMatrix[j][uiDimension] = pValue[j];
+	}
+	return 0;
+}
+
+
+/********************************************************************************************
+函数功能：将系数矩阵的第i行除以指定系数加到第j行,使得第j行的首系数为零
+@Param pMatrix:指向指数矩阵的指针
+@Param i,j:第i行，第j列
+@Param uiDimension:系数矩阵的维度
+返回值 0成功，1失败
+********************************************************************************************/
+uint8_t MC2_MatrixCalBetterElim(FP64 **ppMatrix, uint16_t i, uint16_t j, uint16_t uiDimension)
+{
+	if (ppMatrix == NULL || uiDimension == 0)
+	{
+		return 1;
+	}
+	FP64 Coeff;
+	//确认第i行首系数为零
+	if (ppMatrix[i][i] == 0.0f)
+	{
+		//第i行下面首系数非零的行加到第i行
+		for (int16_t k = i+1; k < uiDimension; k++)
+		{
+			if (ppMatrix[k][i] != 0.0f)
+			{
+				//将第k行加到第i行中
+				for (int16_t m = i; m < uiDimension+1; m++)
+				{
+					ppMatrix[i][m] += ppMatrix[k][m];
+				}
+				break;
+			}
+			else
+			{
+				if (k == uiDimension -1)
+				{
+					return 2;
+				}
+			}
+		}
+	}
+
+	//计算系数
+	Coeff = ppMatrix[j][i] / ppMatrix[i][i];
+	for (int16_t k = i; k < uiDimension+1; k++)
+	{
+		//计算系数，再减到下一行
+		ppMatrix[j][k] -= ppMatrix[i][k] * Coeff;
+	}
+	return 0;
+}
+
+/********************************************************************************************
+函数功能：消元第一步，将系数矩阵转换成上三角矩阵
+@Param pMatrix:指向指数矩阵的指针
+@Param uiDimension:系数矩阵的维度
+返回值 0成功，1失败
+********************************************************************************************/
+uint8_t MC2_MatrixElimination(FP64 **ppMatrix, uint16_t uiDimension)
+{
+	if (ppMatrix == NULL || uiDimension == 0)
+	{
+		return 1;
+	}
+	//消去
+	for (uint16_t i = 0; i < uiDimension ; i++)
+	{//第i行运算
+		for (uint16_t j = i + 1; j < uiDimension; j++)
+		{
+			//第j行-第i行*第j行首系数/第i行首系数
+			//MC_MatrixCalElim(pMatrix, pValue, i, j, uiDimension);
+			MC2_MatrixCalBetterElim(ppMatrix, i, j, uiDimension);
+		}
+	}
+
+	return 0;
+}
+
+
+/********************************************************************************************
+函数功能：消元第二步,上三角矩阵回代求解
+@Param pMatrix:指向指数矩阵的指针
+@Param pRoot:方程的根
+@Param uiDimension:系数矩阵的维度
+返回值 0成功，1失败
+********************************************************************************************/
+uint8_t MC2_MatrixInverseCal(FP64 **ppMatrix, FP64 pRoot[], uint16_t uiDimension)
+{
+	if (ppMatrix == NULL || pRoot == NULL || uiDimension == 0)
+	{
+		return 1;
+	}
+	//回代求解
+	FP64 fBackValue = 0;
+	for (int16_t i = uiDimension - 1; i >= 0; i--)
+	{
+		fBackValue = 0;
+		//前一个解回代值到下一个公式值的计算
+		for (int16_t k = i+1; k < uiDimension; k++)
+		{
+			fBackValue += ppMatrix[i][k]*pRoot[k];
+		}
+		//分母为零，返回2
+		if (ppMatrix[i][i] == 0.0f)
+		{
+			return 2;
+		}
+		pRoot[i] = (ppMatrix[i][uiDimension] - fBackValue) / ppMatrix[i][i];
+	}
+	return 0;
+}
+
