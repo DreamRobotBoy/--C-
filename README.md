@@ -1,0 +1,2 @@
+# Solution_of_linear_equations
+求解N个未知数的线性方程组的解集
