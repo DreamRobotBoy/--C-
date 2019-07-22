@@ -3,10 +3,8 @@
 
 /********************************************************************************************
 函数功能：创建数据链表矩阵
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值
+@Param 无:
+返回:指向MC_Matrix_t类型的指针
 ********************************************************************************************/
 MC_Matrix_t *MC_MatrixCreate()
 {
@@ -17,10 +15,9 @@ MC_Matrix_t *MC_MatrixCreate()
 
 /********************************************************************************************
 函数功能：打印数据链表矩阵
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值
+@Param pMatrix:系数矩阵
+@Param uiDimension:系数矩阵的维度
+无返回值
 ********************************************************************************************/
 void MC_MatrixPrint(MC_Matrix_t *pMatrix, uint16_t uiDimension)
 {
@@ -50,11 +47,9 @@ void MC_MatrixPrint(MC_Matrix_t *pMatrix, uint16_t uiDimension)
 }
 
 /********************************************************************************************
-函数功能：清除数据链表矩阵
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值
+函数功能：释放数据链表矩阵占用的堆栈内存
+@Param pMatrix:系数矩阵
+无返回值
 ********************************************************************************************/
 void MC_MatrixClear(MC_Matrix_t *pMatrix)
 {
@@ -73,11 +68,10 @@ void MC_MatrixClear(MC_Matrix_t *pMatrix)
 }
 
 /********************************************************************************************
-函数功能：向数据链表矩阵添加数据
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0成功添加 1添加失败
+函数功能：添加数据到系数矩阵中
+@Param pMatrix:系数矩阵
+@Param fData:所要添加的系数
+返回值 0成功 1失败
 ********************************************************************************************/
 uint8_t MC_MatrixAddData(MC_Matrix_t *pMatrix, FP64 fData)
 {
@@ -109,11 +103,10 @@ uint8_t MC_MatrixAddData(MC_Matrix_t *pMatrix, FP64 fData)
 }
 
 /********************************************************************************************
-函数功能：数据链表矩阵删除指定index链表
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0删除成功，1删除失败
+函数功能：释放系数矩阵第index个节点占用的堆栈内存
+@Param pMatrix:指向系数矩阵的指针
+@Param index:所需删除的节点序号，从1开始计数。
+返回值 0成功，1失败
 ********************************************************************************************/
 uint8_t MC_MatrixDeleteIndex(MC_Matrix_t **pMatrix, uint16_t index)
 {
@@ -169,25 +162,12 @@ uint8_t MC_MatrixDeleteIndex(MC_Matrix_t **pMatrix, uint16_t index)
 }
 
 /********************************************************************************************
-函数功能：数据链表矩阵插入指定index链表
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0删除成功，1删除失败
-********************************************************************************************/
-uint8_t MC_MatrixInsertIndex(MC_Matrix_t *pMatrix, uint16_t index, FP64 fData)
-{
-
-
-	return 0;
-}
-
-/********************************************************************************************
-函数功能：数据链表查找指定系数
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0删除成功，1删除失败
+函数功能：查找矩阵的指定系数
+@Param pMatrix:系数矩阵
+@Param i:指定第i行
+@Param j:指定第j列
+@Param uiDimension:系数矩阵的维度
+返回值 0成功，1失败
 ********************************************************************************************/
 FP64 MC_MatrixCoeffIndex(MC_Matrix_t *pMatrix, uint16_t i, uint16_t j, uint16_t uiDimension)
 {
@@ -213,175 +193,11 @@ FP64 MC_MatrixCoeffIndex(MC_Matrix_t *pMatrix, uint16_t i, uint16_t j, uint16_t 
 }
 
 /********************************************************************************************
-函数功能：数据链表矩阵选主元
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0成功，1失败
-********************************************************************************************/
-uint8_t MC_MatrixSelectPivot(MC_Matrix_t **pMatrix,FP64 pValue[], uint16_t uiDimension)
-{
-	if (pMatrix == NULL || uiDimension == 0)
-	{
-		return 1;
-	}
-	//动态分配数组指针
-	MC_Matrix_t **pAddr = (MC_Matrix_t**)calloc(uiDimension, sizeof(MC_Matrix_t*));
-	MC_Matrix_t **pAddrTemp = (MC_Matrix_t**)calloc(uiDimension, sizeof(MC_Matrix_t*));
-	MC_Matrix_t *pCur;
-	pCur = *pMatrix;
-	int16_t j = 0;
-	//检索并保存每行首指针
-	for (int16_t i = 1; i <= uiDimension*uiDimension; i++)
-	{
-		if (pCur->pNextData == NULL)
-		{
-			return 1;
-		}
-		if (i%uiDimension == 1)
-		{
-			pAddr[j] = pCur;
-			pAddrTemp[j++] = pCur;
-		}
-		//pNext = pCur->pNextData;
-		pCur = pCur->pNextData;
-	}
-	//把最后一个内存释放
-	free(pCur);
-
-	//主元排序
-	FP64 fMaxValue = 0;	//最大值
-	int16_t fMaxRowIndex = 0;//最大行序号
-	FP64 ValueTemp = 0;
-	for (int16_t i = 0; i < uiDimension; i++)
-	{
-		fMaxValue = pAddrTemp[i]->fData;
-		fMaxRowIndex = i;
-		//当前值等于0
-		if (fMaxValue == 0.0f)
-		{
-			//第i行与其下面行进行大小比较，确定最大行，再换行
-			for (int16_t k = i + 1; k < uiDimension; k++)
-			{
-				if (pAddrTemp[k]->fData != 0.0f)
-				{
-					fMaxValue = pAddrTemp[k]->fData;
-					fMaxRowIndex = k;
-					break;
-				}
-			}
-		}
-
-		//最大行替换至第i行
-		if (fMaxValue != pAddrTemp[i]->fData)
-		{
-			//先换行，再链接
-			pCur = pAddr[i];
-			pAddr[i] = pAddr[fMaxRowIndex];
-			pAddr[fMaxRowIndex] = pCur;
-
-			//临时变量也需要换行
-			pCur = pAddrTemp[i];
-			pAddrTemp[i] = pAddr[fMaxRowIndex];
-			pAddrTemp[fMaxRowIndex] = pCur;
-
-			//换等于右值
-			ValueTemp = pValue[i];
-			pValue[i] = pValue[fMaxRowIndex];
-			pValue[fMaxRowIndex] = ValueTemp;		
-		}
-		//临时保存
-		//向前推进一个节点
-		for (int16_t m = i + 1; m < uiDimension; m++)
-		{
-			pAddrTemp[m] = pAddrTemp[m]->pNextData;
-		}
-	}
-
-	//重新链接
-	pCur = pAddr[0];
-	for (int16_t m = 1; m < uiDimension; m++)
-	{
-		for (int16_t k = 0; k < uiDimension - 1; k++)
-		{
-			pCur = pCur->pNextData;
-		}
-		pCur->pNextData = pAddr[m];
-		pCur = pAddr[m];
-	}
-	for (int16_t k = 0; k < uiDimension-1; k++)
-	{
-		pCur = pCur->pNextData;
-	}
-	//补充最后一个内存
-	pCur->pNextData = (MC_Matrix_t*)malloc(sizeof(MC_Matrix_t));
-	pCur->pNextData->pNextData = NULL;
-	*pMatrix = pAddr[0];
-	//释放动态数组内存
-	free(pAddr);
-	free(pAddrTemp);
-	return 0;
-}
-
-
-/********************************************************************************************
-函数功能：数据链表矩阵//第j行-第i行*第j行首系数/第i行首系数
-@Param Param1:
-@Param Param2:
-@Param Param3:
-返回值 0成功，1失败
-********************************************************************************************/
-uint8_t MC_MatrixCalElim(MC_Matrix_t **pMatrix, FP64 pValue[], uint16_t i, uint16_t j, uint16_t uiDimension)
-{
-	if (pMatrix == NULL || pValue == NULL)
-	{
-		return 1;
-	}
-	FP64 Coeff, Mol, Den;
-	MC_Matrix_t *pRow_i = NULL, *pRow_j = NULL, *pCur, *pNext, *pCur1, *pNext1;
-	pCur = *pMatrix;
-	//检索第i与j行首指针
-	for (uint16_t k = 1; k < uiDimension*(j - 1) + i; k++)
-	{
-		//检索到第i行首指针
-		if (k == uiDimension*(i - 1) + i)
-		{
-			pRow_i = pCur;
-			Den = pCur->fData;
-		}
-		pNext = pCur->pNextData;
-		pCur = pNext;
-	}
-	//检索到第j行首指针
-	pRow_j = pCur;
-	Mol = pCur->fData;
-	//计算系数
-	Coeff = Mol / Den;
-	//pRow_j-pRow_i*Coeff
-	pCur = pRow_i; pCur1 = pRow_j;
-	for (uint16_t k = i; k <= uiDimension; k++)
-	{
-		//计算系数，再减到下一行
-		pCur1->fData = pCur1->fData - pCur->fData*Coeff;
-		//往后推进一个节点
-		if (pCur->pNextData != NULL&&pCur1->pNextData != NULL)
-		{
-			pNext = pCur->pNextData;
-			pNext1 = pCur1->pNextData;
-			pCur = pNext;
-			pCur1 = pNext1;
-		}
-	}
-	pValue[j - 1] = pValue[j - 1] - pValue[i - 1] * Coeff;
-	return 0;
-
-}
-
-/********************************************************************************************
-函数功能：更好完美的数据链表矩阵//第j行-第i行*第j行首系数/第i行首系数
-@Param Param1:
-@Param Param2:
-@Param Param3:
+函数功能：将系数矩阵的第i行除以指定系数加到第j行,使得第j行的首系数为零
+@Param pMatrix:指向指数矩阵的指针
+@Param pValue[]:等式右值
+@Param i,j:第i行，第j列
+@Param uiDimension:系数矩阵的维度
 返回值 0成功，1失败
 ********************************************************************************************/
 uint8_t MC_MatrixCalBetterElim(MC_Matrix_t **pMatrix, FP64 pValue[], uint16_t i, uint16_t j, uint16_t uiDimension)
@@ -477,10 +293,10 @@ uint8_t MC_MatrixCalBetterElim(MC_Matrix_t **pMatrix, FP64 pValue[], uint16_t i,
 }
 
 /********************************************************************************************
-函数功能：数据链表矩阵消去运算
-@Param Param1:
-@Param Param2:
-@Param Param3:
+函数功能：消元第一步，将系数矩阵转换成上三角矩阵
+@Param pMatrix:指向指数矩阵的指针
+@Param pValue:等式右值
+@Param uiDimension:系数矩阵的维度
 返回值 0成功，1失败
 ********************************************************************************************/
 uint8_t MC_MatrixElimination(MC_Matrix_t **pMatrix, FP64 pValue[], uint16_t uiDimension)
@@ -506,10 +322,11 @@ uint8_t MC_MatrixElimination(MC_Matrix_t **pMatrix, FP64 pValue[], uint16_t uiDi
 
 
 /********************************************************************************************
-函数功能：数据链表矩阵求根运算
-@Param Param1:
-@Param Param2:
-@Param Param3:
+函数功能：消元第二步,上三角矩阵回代求解
+@Param pMatrix:指向指数矩阵的指针
+@Param pValue:等式右值
+@Param pRoot:方程的根
+@Param uiDimension:系数矩阵的维度
 返回值 0成功，1失败
 ********************************************************************************************/
 uint8_t MC_MatrixInverseCal(MC_Matrix_t *pMatrix, FP64 pValue[], FP64 pRoot[], uint16_t uiDimension)
